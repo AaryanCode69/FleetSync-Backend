@@ -1,0 +1,41 @@
+import type { Point } from 'geojson';
+import { EntityClass } from 'src/common/common.entity';
+import { Column, Index } from 'typeorm';
+
+export enum UserRole {
+  CUSTOMER = 'CUSTOMER',
+  DRIVER = 'DRIVER',
+  ADMIN = 'ADMIN',
+}
+
+export class User extends EntityClass {
+  @Column({ unique: true })
+  username: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ nullable: false })
+  password: string;
+
+  @Column({ name: 'first_name' })
+  firstName: string;
+
+  @Column({ name: 'last_name' })
+  lastName: string;
+
+  @Column({ name: 'phone_number', unique: true })
+  phoneNumber: string;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.CUSTOMER })
+  role: UserRole;
+
+  @Index({ spatial: true })
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: true,
+  })
+  location: Point;
+}
