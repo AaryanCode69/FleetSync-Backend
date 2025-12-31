@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { OrderModule } from './order/order.module';
 import { DriverModule } from './driver/driver.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
-import { MenuItemModule } from './menu-item/menu-item.module';
+import { MenuModule } from './menu-item/menu.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -20,7 +20,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     OrderModule,
     DriverModule,
     RestaurantModule,
-    MenuItemModule,
+    MenuModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

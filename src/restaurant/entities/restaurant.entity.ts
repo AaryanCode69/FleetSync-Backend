@@ -1,6 +1,8 @@
 import type { Point } from 'geojson';
 import { EntityClass } from 'src/common/common.entity';
-import { Column, Entity, Index } from 'typeorm';
+import { Category } from 'src/menu-item/entities/category.entity';
+import { MenuItem } from 'src/menu-item/entities/menu-item.entity';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 @Entity('restaurants')
 export class Restaurant extends EntityClass {
@@ -39,4 +41,12 @@ export class Restaurant extends EntityClass {
 
   @Column({ name: 'cuisine_type', type: 'text', array: true })
   cuisineType: string[];
+
+  @OneToMany(() => MenuItem, (menuItem) => menuItem.restaurant, {
+    cascade: true,
+  })
+  menuItems: MenuItem[];
+
+  @OneToMany(() => Category, (category) => category.restaurant)
+  categories: Category[];
 }
