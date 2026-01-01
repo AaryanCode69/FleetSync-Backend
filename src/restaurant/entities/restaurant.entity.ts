@@ -52,5 +52,5 @@ export class Restaurant extends EntityClass {
   categories: Category[];
 
   @OneToMany(() => Order, (order) => order.restaurant, { cascade: true })
-  order: Order[];
+  orders: Order[];
 }
