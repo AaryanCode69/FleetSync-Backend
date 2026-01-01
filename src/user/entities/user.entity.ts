@@ -1,6 +1,7 @@
 import type { Point } from 'geojson';
 import { EntityClass } from 'src/common/common.entity';
-import { Column, Index } from 'typeorm';
+import { Order } from 'src/order/entities/Order.entity';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 export enum UserRole {
   CUSTOMER = 'CUSTOMER',
@@ -8,6 +9,7 @@ export enum UserRole {
   ADMIN = 'ADMIN',
 }
 
+@Entity('user')
 export class User extends EntityClass {
   @Column({ unique: true })
   username: string;
@@ -29,6 +31,9 @@ export class User extends EntityClass {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.CUSTOMER })
   role: UserRole;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 
   @Index({ spatial: true })
   @Column({

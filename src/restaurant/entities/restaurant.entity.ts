@@ -2,6 +2,7 @@ import type { Point } from 'geojson';
 import { EntityClass } from 'src/common/common.entity';
 import { Category } from 'src/menu-item/entities/category.entity';
 import { MenuItem } from 'src/menu-item/entities/menu-item.entity';
+import { Order } from 'src/order/entities/Order.entity';
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 @Entity('restaurants')
@@ -49,4 +50,7 @@ export class Restaurant extends EntityClass {
 
   @OneToMany(() => Category, (category) => category.restaurant)
   categories: Category[];
+
+  @OneToMany(() => Order, (order) => order.restaurant, { cascade: true })
+  order: Order[];
 }
