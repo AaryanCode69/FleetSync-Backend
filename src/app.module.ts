@@ -9,6 +9,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
 import { MenuModule } from './menu-item/menu.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         },
       }),
     }),
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

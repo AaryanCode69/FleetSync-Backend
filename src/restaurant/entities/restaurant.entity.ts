@@ -4,6 +4,7 @@ import { Category } from 'src/menu-item/entities/category.entity';
 import { MenuItem } from 'src/menu-item/entities/menu-item.entity';
 import { Order } from 'src/order/entities/Order.entity';
 import { Column, Entity, Index, OneToMany } from 'typeorm';
+import { Review } from './review.entity';
 
 @Entity('restaurants')
 export class Restaurant extends EntityClass {
@@ -53,4 +54,7 @@ export class Restaurant extends EntityClass {
 
   @OneToMany(() => Order, (order) => order.restaurant, { cascade: true })
   orders: Order[];
+
+  @OneToMany(() => Review, (review) => review.restaurant, { cascade: true })
+  reviews: Review[];
 }
