@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import type { Point } from 'geojson';
 import { EntityClass } from 'src/common/common.entity';
 import { Order } from 'src/order/entities/Order.entity';
@@ -18,6 +19,7 @@ export class User extends EntityClass {
   email: string;
 
   @Column({ nullable: false })
+  @Exclude()
   password: string;
 
   @Column({ name: 'first_name' })
