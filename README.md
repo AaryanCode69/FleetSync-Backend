@@ -32,24 +32,24 @@ FleetSync adopts a **Producer-Consumer** architecture for its core matching logi
 
 ```mermaid
 graph TD
-    Client[Client App (User/Driver)] -->|HTTP REST| APIGateway[API Gateway / NestJS Controllers]
-    Client <-->|WebSocket / Socket.io| WSGateway[Event Gateway]
+    Client[Client App] -->|HTTP REST| APIGateway[API Gateway]
+    Client <-->|WebSocket| WSGateway[Event Gateway]
 
-    subgraph "Core Backend Services"
-        APIGateway --> Auth[Auth Guard (JWT)]
+    subgraph Core_Backend_Services[Core Backend Services]
+        APIGateway --> Auth[Auth Guard JWT]
         APIGateway --> OrderService[Order Service]
 
         OrderService -->|Write| DB[(PostgreSQL + PostGIS)]
-        OrderService -->|Add Job| Queue[Redis Queue (BullMQ)]
+        OrderService -->|Add Job| Queue[Redis Queue BullMQ]
     end
 
-    subgraph "Async Processing Layer"
+    subgraph Async_Processing[Async Processing Layer]
         Queue -->|Consume| MatchWorker[Matching Worker]
         MatchWorker -->|Spatial Query| DB
         MatchWorker -->|Cache Hot Data| Redis[(Redis Cache)]
     end
 
-    subgraph "Real-Time Layer"
+    subgraph RealTime_Layer[Real-Time Layer]
         MatchWorker -->|Trigger Event| WSGateway
         WSGateway -->|Push Notification| Client
     end
