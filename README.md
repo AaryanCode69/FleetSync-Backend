@@ -1,132 +1,181 @@
 # 🚀 FleetSync: Hyper-Local Delivery Orchestration Engine
 
-> **A High-Performance Backend for On-Demand Delivery Services built with NestJS.**
+> **High-Performance Event-Driven Backend for On-Demand Logistics**
 
-**FleetSync** is a complex, event-driven backend system designed to simulate the core logistics of platforms like **Uber Eats** or **DoorDash**. Unlike standard CRUD applications, FleetSync handles **real-time geospatial data**, **asynchronous driver matching**, and **high-concurrency state management**.
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-This project demonstrates the transition from a Monolithic architecture to Event-Driven patterns using **NestJS**, **PostgreSQL (PostGIS)**, and **Redis**.
+## 📖 Overview
+
+**FleetSync** is a robust, event-driven backend system designed to simulate the core logistics engine of platforms like **Uber Eats** or **DoorDash**. Unlike standard CRUD applications, FleetSync is engineered to handle **real-time geospatial data**, **asynchronous driver matching**, and **high-concurrency state management**.
+
+This project demonstrates the architectural transition from a simple Monolith to a **Modular Monolith with Event-Driven patterns**, utilizing **NestJS**, **PostgreSQL (PostGIS)**, and **Redis/BullMQ** to ensure scalability and fault tolerance.
+
+---
+
+## 🏗️ System Architecture
+
+FleetSync adopts a **Producer-Consumer** architecture for its core matching logic to ensure the main API thread remains non-blocking.
+
+### High-Level Data Flow
+
+1.  **Ingestion:** Client (User) places an order via REST API. The system validates and instantly acknowledges (`202 Accepted`).
+2.  **Event Bus:** The order event is pushed to a **Redis Queue (BullMQ)**.
+3.  **Processing:** A background **Worker Node** picks up the job and executes the **Geospatial Query (PostGIS)** to find the nearest available drivers (KNN).
+4.  **Real-Time Dispatch:** Once a match is found, the **WebSocket Gateway** pushes an "Offer" event directly to the Driver's device.
+5.  **State Management:** Order status updates ("Accepted", "Picked Up", "Delivered") are broadcasted via WebSockets to all relevant parties.
+
+### Architecture Diagram
+
+```mermaid
+graph TD
+    Client[Client App (User/Driver)] -->|HTTP REST| APIGateway[API Gateway / NestJS Controllers]
+    Client <-->|WebSocket / Socket.io| WSGateway[Event Gateway]
+
+    subgraph "Core Backend Services"
+        APIGateway --> Auth[Auth Guard (JWT)]
+        APIGateway --> OrderService[Order Service]
+
+        OrderService -->|Write| DB[(PostgreSQL + PostGIS)]
+        OrderService -->|Add Job| Queue[Redis Queue (BullMQ)]
+    end
+
+    subgraph "Async Processing Layer"
+        Queue -->|Consume| MatchWorker[Matching Worker]
+        MatchWorker -->|Spatial Query| DB
+        MatchWorker -->|Cache Hot Data| Redis[(Redis Cache)]
+    end
+
+    subgraph "Real-Time Layer"
+        MatchWorker -->|Trigger Event| WSGateway
+        WSGateway -->|Push Notification| Client
+    end
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Framework:** [NestJS](https://nestjs.com/) (Node.js/TypeScript)
-* **Database:** PostgreSQL 15 with **PostGIS** extension (Spatial Data)
-* **ORM:** TypeORM (Repository Pattern)
-* **Caching & Queues:** Redis + **BullMQ** (Async Job Processing)
-* **Real-Time:** Socket.io (Bi-directional Gateway)
-* **Validation:** `class-validator` & `class-transformer`
-* **Containerization:** Docker & Docker Compose
+| Category              | Technology                                         |
+| --------------------- | -------------------------------------------------- |
+| **Framework**         | NestJS (Node.js/TypeScript) - Modular architecture |
+| **Database**          | PostgreSQL 15 - Relational data                    |
+| **Spatial Engine**    | PostGIS - Geospatial indexing and KNN search       |
+| **Queue & Messaging** | BullMQ (on Redis) - Asynchronous job processing    |
+| **Caching**           | Redis - Session storage and geospatial caching     |
+| **Real-Time**         | Socket.io - Bi-directional communication           |
+| **Containerization**  | Docker & Docker Compose                            |
 
 ---
 
 ## 🌟 Key Features
 
 ### 1. 📍 Geospatial Core (PostGIS)
-* **Smart Discovery:** Uses **K-Nearest Neighbors (KNN)** algorithms to find drivers within a specific radius of a restaurant.
-* **Location Tracking:** Stores and updates driver coordinates using `GEOMETRY(Point, 4326)` for sub-second spatial queries.
 
-### 2. ⚡ Asynchronous Matching Engine (BullMQ)
-* **Non-Blocking APIs:** Order placement is instant (`202 Accepted`). The heavy lifting of finding a driver happens in the background.
-* **Reliability:** Implements exponential backoff and retry strategies if no drivers are initially found.
+- **Smart Discovery**: Utilizes K-Nearest Neighbors (KNN) algorithms (`<->` operator) to efficiently query drivers within a specific radius.
+- **Spatial Indexing**: Implements GiST (Generalized Search Tree) indexes on driver locations for sub-millisecond query performance.
+- **Location Tracking**: Stores coordinates using `GEOMETRY(Point, 4326)` standard.
 
-### 3. 📡 Real-Time Updates (Socket.io)
-* **Live Order Tracking:** Pushes status updates (`ASSIGNED`, `PICKED_UP`) to customers instantly.
-* **Driver Offers:** Sends job offers to driver applications in real-time.
+### 2. ⚡ Asynchronous Matching Engine
+
+- **Non-Blocking APIs**: Order placement is decoupled from driver finding. The API responds immediately, while the "Matching" happens in the background.
+- **Resiliency**: Implements exponential backoff and automatic retries if no drivers are found initially.
+
+### 3. 📡 Real-Time Updates (WebSocket)
+
+- **Live Order Tracking**: State changes (`ORDER_ACCEPTED`, `DRIVER_ARRIVING`) are pushed instantly to the client.
+- **Driver Negotiation**: Sends real-time job offers to drivers; handles "Accept/Reject" logic via socket events.
 
 ### 4. 🔐 Enterprise-Grade Security
-* **RBAC:** Role-Based Access Control for `Admin`, `Customer`, and `Driver`.
-* **JWT Auth:** Secure stateless authentication for both REST APIs and WebSocket connections.
 
----
-
-## 🏗️ Architecture Overview
-
-The system follows a modular monolith approach:
-
-1.  **API Gateway (Controllers):** Handles HTTP requests and Input Validation (DTOs).
-2.  **Service Layer:** Contains business logic and transactional boundaries.
-3.  **The "Dispatcher" (Queue Producer):** Offloads heavy tasks (Matching) to Redis.
-4.  **Worker Nodes (Queue Consumer):** Processes background jobs and updates the DB.
-5.  **Event Gateway:** Broadcasts changes to connected clients via WebSockets.
+- **RBAC**: Strict Role-Based Access Control (ADMIN, CUSTOMER, DRIVER).
+- **JWT Authentication**: Stateless authentication securing both REST endpoints and WebSocket handshakes.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-* **Node.js** (v18 or v20 LTS)
-* **Docker Desktop** (Essential for PostGIS and Redis)
-* **Postman** (For API & WebSocket testing)
+
+- Node.js (v18+)
+- Docker Desktop (Required for PostGIS & Redis)
+- npm or pnpm
 
 ### Installation
 
-1.  **Clone the repository**
-    ```bash
-    git clone [https://github.com/your-username/fleetsync.git](https://github.com/your-username/fleetsync.git)
-    cd fleetsync
-    ```
+1. **Clone the repository**
 
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
+```bash
+git clone https://github.com/your-username/fleetsync.git
+cd fleetsync
+```
 
-3.  **Environment Setup**
-    Create a `.env` file in the root directory:
-    ```env
-    # Application
-    PORT=3000
-    NODE_ENV=development
+2. **Install Dependencies**
 
-    # Database (Postgres + PostGIS)
-    DB_HOST=localhost
-    DB_PORT=5432
-    DB_USERNAME=postgres
-    DB_PASSWORD=fleet_secure
-    DB_NAME=fleetsync
+```bash
+npm install
+```
 
-    # Redis (Queue & Cache)
-    REDIS_HOST=localhost
-    REDIS_PORT=6379
+3. **Environment Configuration**
 
-    # Auth
-    JWT_SECRET=super_secret_key_change_this
-    JWT_EXPIRATION=15m
-    ```
+Create a `.env` file in the root directory:
 
-4.  **Spin up Infrastructure (Docker)**
-    This command starts PostgreSQL (with PostGIS enabled) and Redis.
-    ```bash
-    docker-compose up -d
-    ```
+```env
+# App
+PORT=3000
+NODE_ENV=development
 
-5.  **Run the Server**
-    ```bash
-    # Development mode (Watch mode)
-    npm run start:dev
-    ```
+# Database (Docker Service Name: db)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=fleet_secure
+DB_NAME=fleetsync
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Auth
+JWT_SECRET=your_super_secure_secret
+JWT_EXPIRATION=15m
+```
+
+4. **Start Infrastructure**
+
+Spin up PostgreSQL (with PostGIS) and Redis using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+5. **Run the Application**
+
+```bash
+# Development Mode
+npm run start:dev
+```
 
 ---
 
-## 📚 API Documentation (Swagger)
+## 📚 API Documentation
 
-Once the server is running, visit:
-**`http://localhost:3000/api`**
+FleetSync integrates Swagger/OpenAPI for auto-generated documentation.
 
-FleetSync uses `@nestjs/swagger` to auto-generate OpenAPI documentation. You can test endpoints directly from the browser.
+- **Swagger UI**: `http://localhost:3000/api`
+- **OpenAPI JSON**: `http://localhost:3000/api-json`
+
+Use the Swagger UI to test endpoints like `POST /auth/login`, `POST /orders`, and `PATCH /drivers/location`.
 
 ---
 
 ## 🛣️ Roadmap
 
-* [ ] **Phase 1:** User Auth & Profile Management (JWT)
-* [ ] **Phase 2:** Restaurant & Menu CRUD with Caching
-* [ ] **Phase 3:** PostGIS Integration for Driver Location Updates
-* [ ] **Phase 4:** Order Placement & BullMQ Setup
-* [ ] **Phase 5:** WebSocket Integration for Live Tracking
-
----
-
-## 🤝 Contribution
-This is a learning project designed to master NestJS patterns. Suggestions and Pull Requests are welcome!
+- [ ] Phase 1: Core Authentication & User Profiles (JWT)
+- [ ] Phase 2: Restaurant Menu Management (CRUD)
+- [ ] Phase 3: PostGIS Integration for Driver Updates
+- [ ] Phase 4: Order Ingestion & Queue Setup (BullMQ)
+- [ ] Phase 5: WebSocket Gateway & Live Tracking
