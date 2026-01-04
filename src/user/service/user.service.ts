@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserSignupDto } from '../dto/user-signup-request.dto';
+import { UserSignupDto } from '../../auth/dto/user-signup-request.dto';
 import * as bcrypt from 'bcrypt';
 
 interface DatabaseError extends Error {
@@ -33,5 +33,11 @@ export class UserService {
       }
       throw error;
     }
+  }
+
+  async findByUsernameOrEmail(identifier: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: [{ email: identifier }, { username: identifier }],
+    });
   }
 }
