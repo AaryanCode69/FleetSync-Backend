@@ -40,4 +40,8 @@ export class UserService {
       where: [{ email: identifier }, { username: identifier }],
     });
   }
+
+  async findById(id: string) {
+    return this.userRepository.findOneBy({ id });
+  }
 }
