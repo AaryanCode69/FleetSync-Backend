@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/service/user.service';
 import { UserSignupDto } from '../dto/user-signup-request.dto';
 import * as bcrypt from 'bcrypt';
@@ -7,12 +7,16 @@ import { LoginResponseDto } from '../dto/login-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { AuthJwtPayload } from '../types/authjwt.type';
 import { User } from 'src/user/entities/user.entity';
+import refreshJwtConfig from '../config/refresh-jwt.config';
+import type { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    @Inject(refreshJwtConfig.KEY)
+    private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>
   ) {}
 
   async createUser(userSignUpDto: UserSignupDto) {
@@ -39,9 +43,21 @@ export class AuthService {
       username: user.username,
     };
 
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: accessToken,
+      refreshToken: refreshToken,
       user: new UserResponseDto(user),
     };
+  }
+
+  refreshToken(user: User) {
+    const payload: AuthJwtPayload = {
+      sub: user.id,
+      username: user.username,
+    };
+    return this.jwtService.sign(payload, this.refreshTokenConfig);
   }
 }

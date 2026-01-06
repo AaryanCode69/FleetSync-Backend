@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Request,
   UseGuards,
   UseInterceptors,
@@ -13,6 +14,7 @@ import { AuthService } from '../service/auth.service';
 import { UserSignupDto } from '../dto/user-signup-request.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
+import { RefreshJwtAuthGuard } from '../guards/jwt-auth/refresh-jwt-auth.guard';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -33,5 +35,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   loginUser(@Request() req: RequestWithUser) {
     return this.authService.loginUser(req.user);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RefreshJwtAuthGuard)
+  refreshAccessToken(@Req() req: RequestWithUser) {
+    return this.authService.refreshToken(req.user);
   }
 }
