@@ -31,8 +31,7 @@ export class AuthController {
   @Post('login')
   @UseGuards(AuthGuard('local'))
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ClassSerializerInterceptor)
   loginUser(@Request() req: RequestWithUser) {
-    return req.user;
+    return this.authService.loginUser(req.user);
   }
 }
