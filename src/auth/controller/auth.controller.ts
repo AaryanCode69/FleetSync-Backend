@@ -2,11 +2,13 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
   Req,
   Request,
+  UnauthorizedException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -40,7 +42,14 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshJwtAuthGuard)
-  refreshAccessToken(@Req() req: RequestWithUser) {
-    return this.authService.refreshToken(req.user);
+  refreshAccessToken(
+    @Req() req: RequestWithUser,
+    @Headers('authorization') authHeader: string
+  ) {
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+    const refreshToken = authHeader.slice(7);
+    return this.authService.refreshToken(req.user, refreshToken);
   }
 }

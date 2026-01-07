@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import refreshJwtConfig from './config/refresh-jwt.config';
 import { RefreshJwtStrategy } from './strategies/refresh.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshTokenEntity } from './entity/refresh-token.entity';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
+    TypeOrmModule.forFeature([RefreshTokenEntity]),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
   controllers: [AuthController],

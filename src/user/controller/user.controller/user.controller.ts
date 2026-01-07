@@ -15,7 +15,7 @@ interface RequestWithUser extends Request {
 }
 
 @Controller('user')
-export class UserControllerController {
+export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
