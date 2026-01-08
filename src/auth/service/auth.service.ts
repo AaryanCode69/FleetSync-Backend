@@ -141,4 +141,14 @@ export class AuthService {
       return newRefreshToken;
     });
   }
+
+  async logoutUser(user: User) {
+    await this.dataSoure.transaction(async (manager) => {
+      await manager.update(
+        RefreshTokenEntity,
+        { user: { id: user.id }, revokedAt: IsNull() },
+        { revokedAt: new Date() }
+      );
+    });
+  }
 }
