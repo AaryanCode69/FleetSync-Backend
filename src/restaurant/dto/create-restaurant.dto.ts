@@ -32,11 +32,11 @@ export class CreateRestaurantDto {
 
   @IsPostalCode('IN')
   @IsNotEmpty()
-  pinCode: string;
+  pincode: string;
 
   @IsIndianState({ message: 'State must be a valid Indian State' })
   @ToTitleCase()
-  stateName: string;
+  state: string;
 
   @IsString()
   @IsNotEmpty()

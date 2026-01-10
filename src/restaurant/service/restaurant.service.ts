@@ -4,6 +4,7 @@ import { Restaurant } from '../entities/restaurant.entity';
 import { Repository } from 'typeorm';
 import { CreateRestaurantDto } from '../dto/create-restaurant.dto';
 import { Point } from 'geojson';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RestaurantService {
@@ -12,7 +13,7 @@ export class RestaurantService {
     private restaurantRepository: Repository<Restaurant>
   ) {}
 
-  async createRestaurant(createRestaurantDto: CreateRestaurantDto) {
+  async createRestaurant(createRestaurantDto: CreateRestaurantDto, user: User) {
     const { longitude, latitude, ...result } = createRestaurantDto;
     const newLocation = {
       type: 'Point',
@@ -20,6 +21,7 @@ export class RestaurantService {
     };
     const newRestaurant = this.restaurantRepository.create({
       location: newLocation as Point,
+      owner: user,
       ...result,
     });
 

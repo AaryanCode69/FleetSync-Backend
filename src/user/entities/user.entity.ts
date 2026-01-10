@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import type { Point } from 'geojson';
 import { EntityClass } from 'src/common/common.entity';
 import { Order } from 'src/order/entities/Order.entity';
+import { Restaurant } from 'src/restaurant/entities/restaurant.entity';
 import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 export enum UserRole {
@@ -45,4 +46,7 @@ export class User extends EntityClass {
     nullable: true,
   })
   location: Point;
+
+  @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
+  restaurants: Restaurant[];
 }
