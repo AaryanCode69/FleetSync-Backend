@@ -23,7 +23,7 @@ export class Restaurant extends EntityClass {
   })
   location: Point;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', default: false })
   isActive: boolean;
 
   @Column()
@@ -49,7 +49,9 @@ export class Restaurant extends EntityClass {
   })
   menuItems: MenuItem[];
 
-  @OneToMany(() => Category, (category) => category.restaurant)
+  @OneToMany(() => Category, (category) => category.restaurant, {
+    cascade: true,
+  })
   categories: Category[];
 
   @OneToMany(() => Order, (order) => order.restaurant, { cascade: true })
