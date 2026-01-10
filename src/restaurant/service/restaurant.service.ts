@@ -27,4 +27,29 @@ export class RestaurantService {
 
     return await this.restaurantRepository.save(newRestaurant);
   }
+
+  async findAllByLocation(longitude: number, latitude: number, radius: number) {
+    return await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .where(
+        `ST_DWithin(
+               restaurant.location::geography,
+               ST_SetSRID(ST_MakePoint(:long, :lat), 4326)::geography,
+               :radius
+            )`,
+        {
+          long: longitude,
+          lat: latitude,
+          radius: radius,
+        }
+      )
+      .orderBy(
+        `ST_Distance(
+               restaurant.location::geography,
+               ST_SetSRID(ST_MakePoint(:long, :lat), 4326)::geography
+            )`,
+        'ASC'
+      )
+      .getMany();
+  }
 }

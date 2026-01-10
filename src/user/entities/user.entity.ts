@@ -8,6 +8,7 @@ import { Column, Entity, Index, OneToMany } from 'typeorm';
 export enum UserRole {
   CUSTOMER = 'CUSTOMER',
   DRIVER = 'DRIVER',
+  OWNER = 'OWNER',
   ADMIN = 'ADMIN',
 }
 

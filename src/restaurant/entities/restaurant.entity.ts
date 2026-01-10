@@ -27,7 +27,7 @@ export class Restaurant extends EntityClass {
     type: 'geometry',
     spatialFeatureType: 'Point',
     srid: 4326,
-    nullable: true,
+    nullable: false,
   })
   location: Point;
 
