@@ -52,4 +52,11 @@ export class RestaurantService {
       )
       .getMany();
   }
+
+  async getRestaurantById(restaurantId: string) {
+    return await this.restaurantRepository.findOne({
+      where: { id: restaurantId },
+      select: ['id', 'ownerId'],
+    });
+  }
 }

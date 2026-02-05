@@ -74,4 +74,7 @@ export class Restaurant extends EntityClass {
   })
   @JoinColumn({ name: 'owner_id' })
   owner: User;
+
+  @Column({ name: 'owner_id', insert: false, update: false })
+  ownerId: string;
 }

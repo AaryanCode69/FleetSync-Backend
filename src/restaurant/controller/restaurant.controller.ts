@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  ParseFloatPipe,
   Post,
   Query,
   Request,
