@@ -40,4 +40,11 @@ export class CategoryService {
 
     return await this.categoryRepository.save(newCategory);
   }
+
+  async getCategoryById(categoryId: string) {
+    return await this.categoryRepository.findOne({
+      where: { id: categoryId },
+      relations: ['restaurant'],
+    });
+  }
 }

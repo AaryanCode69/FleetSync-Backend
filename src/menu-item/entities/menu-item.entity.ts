@@ -20,7 +20,7 @@ export class MenuItem extends EntityClass {
   @Column({ nullable: false, name: 'image_url' })
   imageUrl: string;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'decimal', nullable: false, scale: 2, precision: 10 })
   price: number;
 
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.menuItems)

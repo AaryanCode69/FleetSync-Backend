@@ -1,38 +1,38 @@
 import {
-  Body,
   Controller,
   HttpCode,
   HttpStatus,
   Param,
   Post,
-  Request,
   UseGuards,
+  Request,
+  Body,
 } from '@nestjs/common';
+import { MenuItemService } from '../service/menu-item.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { CreateMenuItemDto } from '../dto/create-menuitem.dto';
 import { User } from 'src/user/entities/user.entity';
-import { CreateCategoryDto } from '../dto/create-category.dto';
-import { CategoryService } from '../service/category.service';
 
 interface RequestWithUser extends Request {
   user: User;
 }
 
 @Controller('menuitem')
-export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+export class MenuItemController {
+  constructor(private readonly menuItemService: MenuItemService) {}
 
-  @Post(':restaurantid/categories')
+  @Post('/category/:categoryid/items')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  createCategory(
-    @Request() req: RequestWithUser,
-    @Body() createCategoryDto: CreateCategoryDto,
-    @Param('restaurantid') params: string
+  createMenuItem(
+    @Param('categoryid') categoryId: string,
+    @Body() newMenuItem: CreateMenuItemDto,
+    @Request() req: RequestWithUser
   ) {
-    return this.categoryService.createCategory(
-      createCategoryDto,
-      params,
-      req.user.id
+    return this.menuItemService.addMenuItem(
+      req.user.id,
+      newMenuItem,
+      categoryId
     );
   }
 }
